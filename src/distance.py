@@ -30,7 +30,7 @@ while True:
     distance = pulse_duration * 17150
     distance = round(distance, 2)
 
-    if distance > 20 and distance < 400:
+    if 20< distance < 480:
         print ("Distance: ",distance - 0.5, "cm")
     else:
         print ("Out of Range")
