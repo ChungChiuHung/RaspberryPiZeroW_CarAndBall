@@ -37,7 +37,7 @@ else:
     print ("Out of Range")
 
 #Get the time in the right format
-dtg = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()+".000")
+dtg = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())+".000"
 print("Local current time:", dtg)
 
 try:
