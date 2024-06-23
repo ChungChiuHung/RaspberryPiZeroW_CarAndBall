@@ -5,14 +5,14 @@ GPIO.setmode(GPIO.BCM)
 TRIG = 15
 ECHO = 14
 
-print "Distance measurement in progress"
+print ("Distance measurement in progress")
 
 GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
 while True:
     GPIO.output(TRIG, False)
-    print "Waiting For Sensor To Settle"
+    print ("Waiting For Sensor To Settle")
     time.sleep(2)
 
     GPIO.output(TRIG, True)
@@ -31,6 +31,6 @@ while True:
     distance = round(distance, 2)
 
     if distance > 20 and distance < 400:
-        print "Distance: ",distance - 0.5, "cm"
-    else
-        print "Out of Range"
+        print ("Distance: ",distance - 0.5, "cm")
+    else:
+        print ("Out of Range")
