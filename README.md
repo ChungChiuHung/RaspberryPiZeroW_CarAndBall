@@ -34,3 +34,8 @@ network={
 }
 ```
 
+Restart the Wi-Fi Interface:
+```
+sudo wpa_cli -i wlan0 reconfigure
+```
+
