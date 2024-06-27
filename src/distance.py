@@ -29,6 +29,7 @@ urls = [
     "http://192.168.0.107"
 ]
 
+# Ball states
 ball_go = "on"
 ball_stop = "off"
 
@@ -48,7 +49,7 @@ async def handle_requests(state):
 while True:
     GPIO.output(TRIG, False)
     print ("Waiting For Sensor To Settle")
-    time.sleep(2)
+    time.sleep(1)
     
     # Send a pulse to the TRIG pin
     GPIO.output(TRIG, True)
@@ -84,11 +85,3 @@ while True:
             # Send the HTTP request to balls to stop
             asyncio.run(handle_requests(ball_stop))
             out_of_range_time = time.time()
-
-
-# Clean up GPIO settings on exit
-def cleanup_gpio():
-    GPIO.cleanup()
-
-import atexit
-atexit.register(cleanup_gpio)
