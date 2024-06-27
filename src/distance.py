@@ -46,42 +46,55 @@ async def handle_requests(state):
     tasks = [make_request(url, state) for url in urls]
     await asyncio.gather(*tasks)
 
-while True:
-    GPIO.output(TRIG, False)
-    print ("Waiting For Sensor To Settle")
-    time.sleep(1)
-    
-    # Send a pulse to the TRIG pin
-    GPIO.output(TRIG, True)
-    time.sleep(0.00001)
-    GPIO.output(TRIG, False)
+async def measure_distance():
+    global out_of_range_time
 
-    # Measure the time for the pulse to return
-    while GPIO.input(ECHO)==0:
-        pulse_start = time.time()
-    
-    while GPIO.input(ECHO)==1:
-        pulse_end = time.time()
+    while True:
+        GPIO.output(TRIG, False)
+        print ("Waiting For Sensor To Settle")
+        time.sleep(1)
 
-    # Calculate distance based on pulse duration
-    pulse_duration = pulse_end - pulse_start
-    distance = pulse_duration * 17150
-    distance = round(distance, 2)
+        # Send a pulse to the TRIG pin
+        GPIO.output(TRIG, True)
+        time.sleep(0.00001)
+        GPIO.output(TRIG, False)
 
-    # Print the calculated distance
-    print("Distance: ", distance - 0.5, "cm")
+        # Measure the time for the pulse to return
+        while GPIO.input(ECHO)==0:
+            pulse_start = time.time()
 
-    if 20< distance < 400:
-        print ("Distance: ",distance - 0.5, "cm")
-        # request balls to move
-        # Send the HTTP request
-        asyncio.run(handle_requests(ball_go))
-        out_of_range_time = None # Reset the out of range time
-    else:
-        print ("Out of Range") # display out of range
-        if out_of_range_time is None:
-            out_of_range_time = time.time() # Record the time when it went out of range
-        elif time.time() - out_of_range_time >= passed_time:
-            # Send the HTTP request to balls to stop
-            asyncio.run(handle_requests(ball_stop))
-            out_of_range_time = time.time()
+        while GPIO.input(ECHO)==1:
+            pulse_end = time.time()
+
+        # Calculate distance based on pulse duration
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 17150
+        distance = round(distance, 2)
+
+        # Print the calculated distance
+        print("Distance: ", distance - 0.5, "cm")
+
+        if 20< distance < 400:
+            print ("Distance: ",distance - 0.5, "cm")
+            # request balls to move
+            # Send the HTTP request
+            asyncio.run(handle_requests(ball_go))
+            out_of_range_time = None # Reset the out of range time
+        else:
+            print ("Out of Range") # display out of range
+            if out_of_range_time is None:
+                out_of_range_time = time.time() # Record the time when it went out of range
+            elif time.time() - out_of_range_time >= passed_time:
+                # Send the HTTP request to balls to stop
+                asyncio.run(handle_requests(ball_stop))
+                out_of_range_time = time.time()
+
+# Clean up GPIO settings on exit
+def cleanup_gpio():
+    GPIO.cleanup()
+
+import atexit
+atexit.register(cleanup_gpio)
+
+# Run the main async function
+asyncio.run(measure_distance())
