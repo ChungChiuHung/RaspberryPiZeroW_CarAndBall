@@ -52,11 +52,11 @@ async def measure_distance():
     while True:
         GPIO.output(TRIG, False)
         print ("Waiting For Sensor To Settle")
-        time.sleep(1)
+        time.sleep(2)
 
         # Send a pulse to the TRIG pin
         GPIO.output(TRIG, True)
-        time.sleep(0.00001)
+        await asyncio.sleep(0.00001)
         GPIO.output(TRIG, False)
 
         # Measure the time for the pulse to return
@@ -78,7 +78,7 @@ async def measure_distance():
             print ("Distance: ",distance - 0.5, "cm")
             # request balls to move
             # Send the HTTP request
-            asyncio.run(handle_requests(ball_go))
+            await handle_requests(ball_go)
             out_of_range_time = None # Reset the out of range time
         else:
             print ("Out of Range") # display out of range
@@ -86,7 +86,7 @@ async def measure_distance():
                 out_of_range_time = time.time() # Record the time when it went out of range
             elif time.time() - out_of_range_time >= passed_time:
                 # Send the HTTP request to balls to stop
-                asyncio.run(handle_requests(ball_stop))
+                await handle_requests(ball_stop)
                 out_of_range_time = time.time()
 
 # Clean up GPIO settings on exit
