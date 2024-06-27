@@ -67,7 +67,10 @@ while True:
     distance = pulse_duration * 17150
     distance = round(distance, 2)
 
-    if 20< distance < 480:
+    # Print the calculated distance
+    print("Distance: ", distance - 0.5, "cm")
+
+    if 20< distance < 400:
         print ("Distance: ",distance - 0.5, "cm")
         # request balls to move
         # Send the HTTP request
