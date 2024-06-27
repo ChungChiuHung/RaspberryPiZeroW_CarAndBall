@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO # Import GPIO library
 import time # Import time library
 import aiohttp # Import aiohttp library
 import asyncio # Import asyncio library
+import aiohttp import web # Import web server from aiohttp
 
 print("aiohttp version: ", aiohttp.__version__)
 
@@ -12,11 +13,13 @@ ECHO = 14 # Associate pin 14 to Echo
 
 print ("Distance measurement in progress")
 
+# Set up GPIO pins
 GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
+# Time settings
 out_of_range_time = None
-passed_time = 600 # 3 minutes
+passed_time = 30 # 30 second
 
 urls = [
     "http://192.168.0.100",
@@ -33,6 +36,7 @@ urls = [
 ball_go = "on"
 ball_stop = "off"
 
+# Function to make an HTTP request
 async def make_request(url, state):
     request_url = f"{url}/{state}"
     try:
@@ -42,6 +46,7 @@ async def make_request(url, state):
     except aiohttp.ClientError as e:
         print(f"Failed to connect to {request_url}: {e}")
 
+# Function to handle multiple HTTP requests concurrently
 async def handle_requests(state):
     tasks = [make_request(url, state) for url in urls]
     await asyncio.gather(*tasks)
@@ -52,7 +57,7 @@ async def measure_distance():
     while True:
         GPIO.output(TRIG, False)
         print ("Waiting For Sensor To Settle")
-        time.sleep(2)
+        await asyncio.sleep(2)
 
         # Send a pulse to the TRIG pin
         GPIO.output(TRIG, True)
@@ -60,9 +65,11 @@ async def measure_distance():
         GPIO.output(TRIG, False)
 
         # Measure the time for the pulse to return
+        pulse_start = time.time()
         while GPIO.input(ECHO)==0:
             pulse_start = time.time()
 
+        pulse_end = time.time()
         while GPIO.input(ECHO)==1:
             pulse_end = time.time()
 
@@ -74,10 +81,8 @@ async def measure_distance():
         # Print the calculated distance
         print("Distance: ", distance - 0.5, "cm")
 
-        if 20< distance < 400:
-            print ("Distance: ",distance - 0.5, "cm")
-            # request balls to move
-            # Send the HTTP request
+        if 20< distance < 50:
+            # Send the HTTP request to move the balls
             await handle_requests(ball_go)
             out_of_range_time = None # Reset the out of range time
         else:
@@ -89,14 +94,28 @@ async def measure_distance():
                 await handle_requests(ball_stop)
                 out_of_range_time = time.time()
 
+# API handler to stop the balls
+async def stop_balls(request):
+    await handle_requests(ball_stop)
+    return web.Response(text="Balls stopped")
+
 # Clean up GPIO settings on exit
 def cleanup_gpio():
     GPIO.cleanup()
+    
+import atexit
+atexit.register(cleanup_gpio)
 
-# Create an event loop and run the measure_distance coroutine
-loop = asyncio.get_event_loop()
-try:
-    loop.run_until_complete(measure_distance())
-finally:
-    loop.run_until_complete(loop.shutdown_asyncgens())
-    loop.close()
+# Create the web app and add routes
+app = web.Application()
+app.add_routes([web.get('/stop', stop_balls)])
+
+# Create a task to runt the measure_distance function
+async def start_measurement_task(app):
+    asyncio.create_task(measure_distance())
+
+app.on_startup.append(start_measurement_task)
+
+# Run the web app
+if __name__=='__main__':
+    web.run_app(app, port=8080)
