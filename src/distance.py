@@ -34,9 +34,12 @@ ball_stop = "off"
 
 async def make_request(url, state):
     request_url = f"{url}/{state}"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(request_url) as resp:
-            print(f"{request_url} Response: {resp.status}")
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(request_url) as resp:
+                print(f"{request_url} Response: {resp.status}")
+    except aiohttp.ClientError as e:
+        print(f"Failed to connect to {request_url}: {e}")
 
 async def handle_requests(state):
     tasks = [make_request(url, state) for url in urls]
@@ -46,17 +49,20 @@ while True:
     GPIO.output(TRIG, False)
     print ("Waiting For Sensor To Settle")
     time.sleep(2)
-
+    
+    # Send a pulse to the TRIG pin
     GPIO.output(TRIG, True)
     time.sleep(0.00001)
     GPIO.output(TRIG, False)
 
+    # Measure the time for the pulse to return
     while GPIO.input(ECHO)==0:
         pulse_start = time.time()
     
     while GPIO.input(ECHO)==1:
         pulse_end = time.time()
 
+    # Calculate distance based on pulse duration
     pulse_duration = pulse_end - pulse_start
     distance = pulse_duration * 17150
     distance = round(distance, 2)
@@ -75,3 +81,11 @@ while True:
             # Send the HTTP request to balls to stop
             asyncio.run(handle_requests(ball_stop))
             out_of_range_time = time.time()
+
+
+# Clean up GPIO settings on exit
+def cleanup_gpio():
+    GPIO.cleanup()
+
+import atexit
+atexit.register(cleanup_gpio)
