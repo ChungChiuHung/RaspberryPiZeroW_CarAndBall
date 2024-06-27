@@ -16,7 +16,7 @@ GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
 
 out_of_range_time = None
-passed_time = 180 # 10 minutes
+passed_time = 600 # 3 minutes
 
 urls = [
     "http://192.168.0.100",
