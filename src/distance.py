@@ -93,8 +93,10 @@ async def measure_distance():
 def cleanup_gpio():
     GPIO.cleanup()
 
-import atexit
-atexit.register(cleanup_gpio)
-
-# Run the main async function
-asyncio.run(measure_distance())
+# Create an event loop and run the measure_distance coroutine
+loop = asyncio.get_event_loop()
+try:
+    loop.run_until_complete(measure_distance())
+finally:
+    loop.run_until_complete(loop.shutdown_asyncgens())
+    loop.close()
