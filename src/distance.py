@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO # Import GPIO library
 import time # Import time library
 import aiohttp # Import aiohttp library
 import asyncio # Import asyncio library
-import aiohttp as web # Import web server from aiohttp
+from aiohttp import web # Import web server from aiohttp
 
 print("aiohttp version: ", aiohttp.__version__)
 
