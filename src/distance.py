@@ -80,7 +80,7 @@ async def measure_distance():
         # Print the calculated distance
         print("Distance: ", distance - 0.5, "cm")
 
-        if 20< distance < 50:
+        if 20< distance < 70:
             # Send the HTTP request to move the balls
             await handle_requests(ball_go)
             out_of_range_time = None # Reset the out of range time
