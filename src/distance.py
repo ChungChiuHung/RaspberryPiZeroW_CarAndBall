@@ -22,7 +22,6 @@ out_of_range_time = None
 passed_time = 30 # 30 second
 
 urls = [
-    "http://192.168.0.100",
     "http://192.168.0.101",
     "http://192.168.0.102",
     "http://192.168.0.103",
